@@ -10,8 +10,13 @@ inverse_interpolation <- function (x, y, ypred, omega) {
     y <- sweep(y, 2, omega, "/")
     ypred <- sweep(ypred, 2, omega, "/")
     dvec <- fields::rdist(y, ypred)
+    dvec <- sweep(dvec, 2, apply(dvec,2,min), "-")
     w <- exp(-dvec^2)
-    w <- sweep(w, 2, colSums(w), "/")
+    wsums <- colSums(w)
+    if (any(wsums == 0)) {
+        warning("Bandwidth is too small -- some results will be NaN.")
+    }
+    w <- sweep(w, 2, wsums, "/")
     xpred <- crossprod(w, x)
     return(xpred)
 }

@@ -169,26 +169,22 @@ Now let's see how well this does despite this unmodeled correlation.
 ntest <- 1000
 xref <- runif(ntest)
 yref <- fnoise(xref)
-xpred <- inverse_interpolation(xx, yy, yref, omega=0.05/sqrt(ncol(yy)))
+xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
 plot(xref, xpred, xlab='true x', ylab='predicted x', asp=1)
 abline(0,1)
 ```
 
-How does this depend on the number of training samples?
+How does this depend on the bandwidth?
 ```{r error_correlated_with_n}
 ntest <- 1000
-nvals <- 5*(1:20)
-resid_list <- lapply(nvals, function (nx) {
-                xx <- runif(nx)
-                f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
-                fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
-                yy <- fnoise(xx)
-                xref <- runif(ntest)
-                yref <- fnoise(xref)
-                xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
+omega_vals <- (1:30)/100
+resid_list <- lapply(omega_vals, function (omega) {
+                xpred <- inverse_interpolation(xx, yy, yref, omega=omega)
                 return(xpred-xref)
             } )
-names(resid_list) <- nvals
+names(resid_list) <- omega_vals
 boxplot(resid_list, xlab='number of training samples', ylab='error')
+plot(omega_vals, sapply(resid_list, sd),
+        xlab=expression(omega), ylab="SD(error)", type='b')
 ```
 
