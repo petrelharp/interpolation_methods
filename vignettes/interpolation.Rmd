@@ -40,7 +40,7 @@ We will also take uncorrelated noise, $\Sigma = \sigma^2 I$.
 ```{r sim_basic_test}
 n <- 5
 nx <- 100
-Sigma <- diag(.001, n)
+Sigma <- .001 * diag(n)
 xx <- runif(nx)
 f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
 fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
@@ -70,7 +70,7 @@ inverse_interpolation
 Let's check this works, 
 setting $\omega$ to include roughly 10\% of the nearest points.
 ```{r test_basic_case}
-xref <- runif(5)
+xref <- seq(0.1,0.9, length.out=8)
 yref <- fnoise(xref)
 xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
 
@@ -92,12 +92,12 @@ abline(0,1)
 ### Error quantification
 
 How well is this doing?  Let's see.
-```{r test_basic_case}
+```{r error_basic_case, fig.width=fig.dim}
 ntest <- 1000
 xref <- runif(ntest)
 yref <- fnoise(xref)
 xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
-plot(xref, xpred, xlab='true x', ylab='predicted x')
+plot(xref, xpred, xlab='true x', ylab='predicted x', asp=1)
 abline(0,1)
 ```
 The error varies with the true $x$, 
@@ -105,4 +105,53 @@ which makes sense since the curves flatten as $x$ increases.
 
 How does this depend on the number of training samples:
 ```{r error_with_n}
+ntest <- 1000
+nvals <- 5*(1:20)
+resid_list <- lapply(nvals, function (nx) {
+                xx <- runif(nx)
+                f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
+                fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
+                yy <- fnoise(xx)
+                xref <- runif(ntest)
+                yref <- fnoise(xref)
+                xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
+                return(xpred-xref)
+            } )
+names(resid_list) <- nvals
+boxplot(resid_list, xlab='number of training samples', ylab='error')
 ```
+
+## With correlation
+
+Now let's see what happens if there is a lot of unmodeled correlation in the predictors.
+We'll also increase the number of predictors to 100,
+and suppose there are blocks of 50, 30, 10, 5, and 5 variables
+that are correlated with each other with $\rho=0.75$.
+
+```{r sim_correlated_test}
+n <- 100
+var_blocks <- c(rep(1,5), rep(2,5), rep(3,10), rep(4,30), rep(5, 50))
+rho <- 0.75
+Sigma <- .001 * (rho * outer(var_blocks, var_blocks, "=="))
+nx <- 100
+xx <- sort(runif(nx))
+f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
+fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
+yy <- fnoise(xx)
+matplot(xx, yy, type='l', 
+        xlab='x', ylab='y', lty=1)
+matlines(xx, f(xx), lty=3)
+```
+
+First let's check if we can get the covariance matrix from these data.
+We'll do this by subtracting off the running mean and then taking the usual covariance.
+```{r get_cov}
+win_width <- 5
+zz <- apply(yy, 2, cumsum)
+zz <- (zz[-(1:win_width),] - zz[-((nrow(zz)-win_width+1):nrow(zz)),]) / win_width
+
+matplot(xx, yy, type='l', 
+        xlab='x', ylab='y', lty=1)
+matlines(xx, f(xx), lty=3)
+```
+

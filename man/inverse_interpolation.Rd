@@ -13,7 +13,7 @@ inverse_interpolation(x, y, ypred, omega)
 
 \item{ypred}{The matrix of "test" values of y for which a value of x will be predicted.}
 
-\item{omega}{The bandwidth on the local weights.}
+\item{omega}{The bandwidth on the local weights (can be a vector of length equal to the number of columns of y).}
 }
 \value{
 The matrix of predicted x values, with dimensions (nrow(ypred), ncol(x)).
