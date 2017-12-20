@@ -146,12 +146,49 @@ matlines(xx, f(xx), lty=3)
 First let's check if we can get the covariance matrix from these data.
 We'll do this by subtracting off the running mean and then taking the usual covariance.
 ```{r get_cov}
-win_width <- 5
+win_halfwidth <- 5
+win_width <- 2*win_halfwidth + 1
+use_these <- ((1:nrow(yy)) > win_halfwidth) & ((1:nrow(yy)) <= nrow(yy)-win_halfwidth)
 zz <- apply(yy, 2, cumsum)
-zz <- (zz[-(1:win_width),] - zz[-((nrow(zz)-win_width+1):nrow(zz)),]) / win_width
+zz <- (zz[-(1:(win_width-1)),] - rbind(0,zz)[-((nrow(zz)-win_width+2):(nrow(zz)+1)),]) / win_width
+est_cov <- cov(yy[use_these,] - zz)
 
 matplot(xx, yy, type='l', 
         xlab='x', ylab='y', lty=1)
-matlines(xx, f(xx), lty=3)
+matlines(xx[use_these], zz, lty=3)
+
+layout(t(1:2))
+image(Sigma, asp=1, main='true covariance matrix')
+image(est_cov, asp=1, main='estimated covariance matrix')
+hist(est_cov[Sigma>0], xlab='covariance', main='nonzero elements')
+hist(est_cov[Sigma==0], xlab='covariance', main='zero elements')
+```
+
+Now let's see how well this does despite this unmodeled correlation.
+```{r error_correlated_case, fig.width=fig.dim}
+ntest <- 1000
+xref <- runif(ntest)
+yref <- fnoise(xref)
+xpred <- inverse_interpolation(xx, yy, yref, omega=0.05/sqrt(ncol(yy)))
+plot(xref, xpred, xlab='true x', ylab='predicted x', asp=1)
+abline(0,1)
+```
+
+How does this depend on the number of training samples?
+```{r error_correlated_with_n}
+ntest <- 1000
+nvals <- 5*(1:20)
+resid_list <- lapply(nvals, function (nx) {
+                xx <- runif(nx)
+                f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
+                fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
+                yy <- fnoise(xx)
+                xref <- runif(ntest)
+                yref <- fnoise(xref)
+                xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
+                return(xpred-xref)
+            } )
+names(resid_list) <- nvals
+boxplot(resid_list, xlab='number of training samples', ylab='error')
 ```
 

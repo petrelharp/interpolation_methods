@@ -8,7 +8,7 @@
 #' @return The matrix of predicted x values, with dimensions (nrow(ypred), ncol(x)).
 inverse_interpolation <- function (x, y, ypred, omega) {
     y <- sweep(y, 2, omega, "/")
-    ypred <- sweep(y, 2, omega, "/")
+    ypred <- sweep(ypred, 2, omega, "/")
     dvec <- fields::rdist(y, ypred)
     w <- exp(-dvec^2)
     w <- sweep(w, 2, colSums(w), "/")
