@@ -1,0 +1,89 @@
+---
+title: "Interpolation"
+author: "Peter Ralph"
+date: "`r Sys.Date()`"
+---
+
+
+```{r doc_setup, include=FALSE}
+library(MASS)  # for mvrnorm
+fig.dim <- 5
+knitr::opts_chunk$set(fig.width=3*fig.dim,fig.height=fig.dim,fig.align='center')
+set.seed(42)
+```
+
+# High-dimensional, noisy interpolation
+
+
+## The model
+
+Suppose that we have noisy observations of a function from $\mathbb{R}^k \to \mathbb{R}^n$,
+with $n \gg k$:
+$$\begin{aligned}
+  (y_{i1}, \ldots, y_{in}) &= f(x_{i1}, \ldots, x_{ik}) + \epsilon_i \\
+  \epsilon_i \sim N(0, \Sigma) .
+\end{aligned}$$
+
+Then, given a new output value $\tilde y$, estimate the corresponding $\tilde x$.
+
+
+## Test case
+
+Let's take $k=1$ and let
+$$\begin{aligned}
+    f(x) = (1/(1+x), 1/(1+x)^2, \ldots, 1/(1+x)^n)
+\end{aligned}$$
+for $0 \le x \le 1$.
+We will also take uncorrelated noise, $\Sigma = \sigma^2 I$.
+
+```{r sim_basic_test}
+n <- 5
+nx <- 100
+Sigma <- diag(.001, n)
+xx <- runif(nx)
+f <- function (x) { sapply(1:n, function (u) { 1/(1+x)^u }) }
+fnoise <- function (x) { f(x) + mvrnorm(NROW(x), mu=rep(0,n), Sigma=Sigma) }
+yy <- fnoise(xx)
+matplot(xx[order(xx)], yy[order(xx),], type='l', 
+        xlab='x', ylab='y', lty=1)
+matlines(xx[order(xx)], f(xx[order(xx)]), lty=3)
+```
+
+
+## Local interpolation
+
+A first guess is to take a weighted average over the reference values of $x$,
+weighted according to their proximity to the observed $y$.
+For instance,
+$$\begin{aligned}
+    \tilde x &= \sum_i x_i 
+    \frac{\exp\left(-\|\tilde y - y_i\|^2 / 2 \omega^2\right)}
+         {\sum_j \exp\left(-\|\tilde y - y_j\|^2 / 2 \omega^2\right)}
+\end{aligned}$$
+where $\omega$ is chosen appropriately.
+
+```{r local_interp}
+inverse_interpolation
+```
+
+Let's check this works, 
+setting $\omega$ to include roughly 10\% of the nearest points.
+```{r test_basic_case}
+xref <- runif(5)
+yref <- fnoise(xref)
+xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
+
+layout(t(1:2))
+matplot(xx[order(xx)], yy[order(xx),], type='l', 
+        xlab='x', ylab='y', lty=1)
+matlines(xx[order(xx)], f(xx[order(xx)]), lty=3)
+abline(v=xref, lty=4)
+matpoints(xref, yref, pch=20)
+
+matpoints(xpred, yref, pch=23)
+segments(x0=xref, x1=xpred, y0=yref)
+legend("topright", pch=c(20,1), legend=c("truth", "predicted"))
+
+plot(xref, xpred, xlab='true x', ylab='predicted x')
+abline(0,1)
+```
