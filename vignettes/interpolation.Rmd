@@ -6,6 +6,7 @@ date: "`r Sys.Date()`"
 
 
 ```{r doc_setup, include=FALSE}
+library(interposim)
 library(MASS)  # for mvrnorm
 fig.dim <- 5
 knitr::opts_chunk$set(fig.width=3*fig.dim,fig.height=fig.dim,fig.align='center')
@@ -86,4 +87,22 @@ legend("topright", pch=c(20,1), legend=c("truth", "predicted"))
 
 plot(xref, xpred, xlab='true x', ylab='predicted x')
 abline(0,1)
+```
+
+### Error quantification
+
+How well is this doing?  Let's see.
+```{r test_basic_case}
+ntest <- 1000
+xref <- runif(ntest)
+yref <- fnoise(xref)
+xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
+plot(xref, xpred, xlab='true x', ylab='predicted x')
+abline(0,1)
+```
+The error varies with the true $x$, 
+which makes sense since the curves flatten as $x$ increases.
+
+How does this depend on the number of training samples:
+```{r error_with_n}
 ```
