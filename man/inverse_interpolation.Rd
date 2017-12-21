@@ -7,7 +7,7 @@
 inverse_interpolation(x, y, ypred, omega)
 }
 \arguments{
-\item{x}{The matrix of "training" values of x, with one row per training set.}
+\item{x}{The matrix of "training" values of x, with one item per training set.}
 
 \item{y}{The matrix of "training" values of y corresponding to x.}
 
@@ -21,3 +21,4 @@ The matrix of predicted x values, with dimensions (nrow(ypred), ncol(x)).
 \description{
 Local inverse interpolation
 }
+
