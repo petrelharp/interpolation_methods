@@ -196,7 +196,7 @@ plot(omega_vals, sapply(resid_list, sd),
 
 ```{r test-best-with-cv}
 set.seed(111)
-xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.75, max_omega=1)
+xbest <- automatic_inverse_interpolation(xx, yy, yref, min_omega=.75, max_omega=1)
 stopifnot(xbest$boundary_value)
 
 set.seed(111)
