@@ -192,10 +192,14 @@ plot(omega_vals, sapply(resid_list, sd),
         xlab=expression(omega), ylab="SD(error)", type='b')
 ```
 
+### Automatic bandwidth selection
 
 ```{r test-best-with-cv}
-xbest <- automatic_inverse_interpolation(xx, yy, yref, min_omega=.75, max_omega=1, seed=111)
+set.seed(111)
+xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.75, max_omega=1)
 stopifnot(xbest$boundary_value)
-xbest <- automatic_inverse_interpolation(xx, yy, yref, min_omega=.0001, max_omega=1, seed=111)
+
+set.seed(111)
+xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.0001, max_omega=1)
 stopifnot(!xbest$boundary_value)
 ```
