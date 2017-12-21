@@ -21,3 +21,4 @@ The matrix of predicted x values, with dimensions (nrow(ypred), ncol(x)).
 \description{
 Local inverse interpolation
 }
+

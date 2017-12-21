@@ -2,6 +2,11 @@
 title: "Interpolation"
 author: "Peter Ralph"
 date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 
@@ -73,7 +78,6 @@ setting $\omega$ to include roughly 10\% of the nearest points.
 xref <- seq(0.1,0.9, length.out=8)
 yref <- fnoise(xref)
 xpred <- inverse_interpolation(xx, yy, yref, omega=0.05)
-
 layout(t(1:2))
 matplot(xx[order(xx)], yy[order(xx),], type='l', 
         xlab='x', ylab='y', lty=1)
@@ -188,3 +192,14 @@ plot(omega_vals, sapply(resid_list, sd),
         xlab=expression(omega), ylab="SD(error)", type='b')
 ```
 
+### Automatic bandwidth selection
+
+```{r test-best-with-cv}
+set.seed(111)
+xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.75, max_omega=1)
+stopifnot(xbest$boundary_value)
+
+set.seed(111)
+xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.0001, max_omega=1)
+stopifnot(!xbest$boundary_value)
+```
