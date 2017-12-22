@@ -229,7 +229,7 @@ resid_list &lt;-<span class="st"> </span><span class="kw">lapply</span>(omega_va
 <div id="automatic-bandwidth-selection" class="section level3">
 <h3>Automatic bandwidth selection</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">111</span>)
-xbest &lt;-<span class="st"> </span><span class="kw">automatic_inverse_interpolation</span>(<span class="kw">cbind</span>(xx), yy, yref, <span class="dt">min_omega=</span>.<span class="dv">75</span>, <span class="dt">max_omega=</span><span class="dv">1</span>)
+xbest &lt;-<span class="st"> </span><span class="kw">automatic_inverse_interpolation</span>(xx, yy, yref, <span class="dt">min_omega=</span>.<span class="dv">75</span>, <span class="dt">max_omega=</span><span class="dv">1</span>)
 <span class="kw">stopifnot</span>(xbest$boundary_value)
 
 <span class="kw">set.seed</span>(<span class="dv">111</span>)

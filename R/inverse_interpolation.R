@@ -44,6 +44,7 @@ automatic_inverse_interpolation <- function (x, y, ypred, min_omega, k=5,
     if (any(x <= 0) && any(x >= 0) && offset == 0) {
 	    warning("Values of x span zero: should set nonzero offset.")
     }
+    dim(x) <- c(NROW(x), NCOL(x))
     omegas <- seq(min_omega, max_omega, length.out=100)
     shuffled_idxs <- sample.int(nrow(x))
     folds <- split(shuffled_idxs, cut(seq_along(shuffled_idxs), breaks=k)) 
