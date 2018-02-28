@@ -125,6 +125,36 @@ names(resid_list) <- nvals
 boxplot(resid_list, xlab='number of training samples', ylab='error')
 ```
 
+
+### Automatic bandwidth selection
+
+The bandwidth $\omega$ that minimizes error will depend on the data.
+the plot above showed, the best bandwidth might vary as a function of the data $x$, but for now just consider choosing a single scalar "best" $\omega$.
+We can do this by $k$-fold cross validation: 
+
+* divide the data $x$ and $y$ into $k$ blocks, randomly
+- for each of value in a sequence of bandwidths $\omega \in (\omega_l,  \omega_h)$:
+* compute 
+left(-\|\tilde y - y_i\|)
+
+```{r optimal_local_interp}
+automatic_inverse_interpolation_general
+```
+
+For the case above, we set $\omega=0.05$ (including roughly 10\% of the nearest points) 
+
+
+```{r test-best-with-cv}
+AE <- function(y, yhat) abs(y - yhat)
+set.seed(111)
+xbest <- automatic_inverse_interpolation_general(xx, yy, loss=AE, min_omega=.75, max_omega=1)
+stopifnot(xbest$boundary_value)
+
+set.seed(111)
+xbest <- automatic_inverse_interpolation_general(cbind(xx), yy, loss=AE, min_omega=.0001, max_omega=1)
+stopifnot(!xbest$boundary_value)
+```
+
 ## With correlation
 
 Now let's see what happens if there is a lot of unmodeled correlation in the predictors.
@@ -190,16 +220,4 @@ names(resid_list) <- omega_vals
 boxplot(resid_list, xlab='number of training samples', ylab='error')
 plot(omega_vals, sapply(resid_list, sd),
         xlab=expression(omega), ylab="SD(error)", type='b')
-```
-
-### Automatic bandwidth selection
-
-```{r test-best-with-cv}
-set.seed(111)
-xbest <- automatic_inverse_interpolation(xx, yy, yref, min_omega=.75, max_omega=1)
-stopifnot(xbest$boundary_value)
-
-set.seed(111)
-xbest <- automatic_inverse_interpolation(cbind(xx), yy, yref, min_omega=.0001, max_omega=1)
-stopifnot(!xbest$boundary_value)
 ```
